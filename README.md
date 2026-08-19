@@ -1,57 +1,55 @@
 # IELTS Chatbot Frontend
 
-React/Vite frontend for the IELTS chatbot. The backend, LLM, OCR, layout
-analysis, memory, and session-scoped RAG store live in
-[phamtu2x5/ielts-chatbot](https://github.com/phamtu2x5/ielts-chatbot).
+Frontend React cho chatbot IELTS. Repository này chứa giao diện và lớp kết nối
+trình duyệt; toàn bộ LLM, OCR, document processing, conversation memory và RAG
+được xử lý bởi backend riêng.
 
-This repository is ready to be handed to the team that owns the IELTS learning
-website. The current UI is intentionally unchanged; visual redesign is deferred
-until after technical integration.
+## Phạm vi
 
-## Run locally
+Frontend hiện hỗ trợ:
 
-    cp .env.example .env.local
-    # Set IELTS_API_TOKEN in .env.local. It is read by Vite's server process only.
-    npm install
-    npm run dev
+- Chat trực tiếp và follow-up theo phiên.
+- Streaming câu trả lời dạng NDJSON.
+- Upload PDF, DOCX, TXT, Markdown và ảnh.
+- Dán ảnh trực tiếp từ clipboard.
+- Hiển thị Markdown/GFM, bao gồm bảng.
+- Dừng hoặc thử lại yêu cầu.
+- Tự quản lý UUID phiên và yêu cầu backend dọn memory/RAG khi phiên kết thúc.
+- Thông báo thân thiện cho lỗi xác thực, giới hạn, mạng và backend.
 
-The development server opens on http://127.0.0.1:8000. Its /api proxy forwards
-to CHATBOT_BACKEND_URL and attaches the bearer token without exposing it to
-browser JavaScript.
+Frontend không chứa model, dữ liệu RAG, lịch sử hội thoại backend, token truy
+cập backend hoặc công cụ debug nội bộ.
 
-Never put IELTS_API_TOKEN in a VITE_* variable. Every VITE_* value is included
-in the browser bundle.
+## Kiến trúc kết nối
 
-## Integrate into the IELTS system
+```text
+Trình duyệt
+  -> proxy cùng domain của hệ thống IELTS
+  -> Backend API qua Cloudflare Tunnel
+  -> LLM / OCR / RAG trong Colab
+```
 
-The component is exported from src/index.js:
+Trình duyệt không gọi backend bằng token. Proxy tin cậy của hệ thống IELTS giữ
+token, gắn `Authorization: Bearer ...` và chuyển tiếp request/stream tới backend.
 
-    import { IELTSChatbot } from "./path/to/ielts-chatbot-fe/src";
+## Cấu trúc chính
 
-    export function ChatbotTab() {
-      return (
-        <IELTSChatbot
-          apiBase="/api/ielts-chatbot"
-          onSessionChange={(sessionId) => console.info("chat session", sessionId)}
-        />
-      );
-    }
+```text
+src/App.jsx                 Component IELTSChatbot
+src/api/                    API client và NDJSON stream parser
+src/session/                Vòng đời session phía trình duyệt
+src/styles.css              CSS đã scope cho component
+src/main.jsx, src/demo.css  Trang demo local
+tests/                      Contract tests của FE
+docs/HANDOFF.md             Hướng dẫn chạy lại và tích hợp
+```
 
-The website server must proxy /api/ielts-chatbot/* to the private backend
-hostname supplied during deployment, attach Authorization: Bearer <server
-secret>, and stream responses without buffering.
+Giao diện hiện tại là baseline kỹ thuật. Việc thiết kế lại để khớp hệ thống
+IELTS được thực hiện sau khi tích hợp.
 
-Start with [docs/HANDOFF.md](docs/HANDOFF.md). Detailed contracts:
+## Bàn giao
 
-- [Integration guide](docs/INTEGRATION.md)
-- [API and NDJSON contract](docs/API_CONTRACT.md)
-- [Session lifecycle](docs/SESSION_LIFECYCLE.md)
-- [Trusted proxy requirements](docs/PROXY.md)
-
-## Verify
-
-    npm test
-    npm run build
-    npm audit --omit=dev
-
-The production bundle is written to dist/.
+Người tiếp nhận chỉ cần đọc [docs/HANDOFF.md](docs/HANDOFF.md). Tài liệu này mô
+tả đầy đủ thông tin cần nhận, cách chạy local, cách đưa component vào tab
+Chatbot, proxy production, API contract, session lifecycle và checklist nghiệm
+thu.
