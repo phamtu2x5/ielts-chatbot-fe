@@ -1,32 +1,57 @@
 # IELTS Chatbot Frontend
 
-React/Vite frontend for the IELTS chatbot. The backend, Ollama runtime, OCR,
-layout analysis, and session-scoped RAG store live in the separate
-`ielts-chatbot` repository.
+React/Vite frontend for the IELTS chatbot. The backend, LLM, OCR, layout
+analysis, memory, and session-scoped RAG store live in
+[phamtu2x5/ielts-chatbot](https://github.com/phamtu2x5/ielts-chatbot).
 
-## Local development
+This repository is ready to be handed to the team that owns the IELTS learning
+website. The current UI is intentionally unchanged; visual redesign is deferred
+until after technical integration.
 
-```bash
-cp .env.example .env.local
-npm install
-npm run dev
-```
+## Run locally
 
-The development server listens on `http://127.0.0.1:8000`.
+    cp .env.example .env.local
+    # Set IELTS_API_TOKEN in .env.local. It is read by Vite's server process only.
+    npm install
+    npm run dev
 
-Set `VITE_CHATBOT_API_URL` to either:
+The development server opens on http://127.0.0.1:8000. Its /api proxy forwards
+to CHATBOT_BACKEND_URL and attaches the bearer token without exposing it to
+browser JavaScript.
 
-- `/api` when the learning website proxies API requests through its own server;
-- the backend URL for local testing when backend authentication is disabled.
+Never put IELTS_API_TOKEN in a VITE_* variable. Every VITE_* value is included
+in the browser bundle.
 
-Do not put the backend bearer token in a `VITE_*` variable or browser code.
-For production, the learning website's trusted server should attach the token
-while proxying requests to the backend.
+## Integrate into the IELTS system
 
-## Build
+The component is exported from src/index.js:
 
-```bash
-npm run build
-```
+    import { IELTSChatbot } from "./path/to/ielts-chatbot-fe/src";
 
-The production bundle is written to `dist/`.
+    export function ChatbotTab() {
+      return (
+        <IELTSChatbot
+          apiBase="/api/ielts-chatbot"
+          onSessionChange={(sessionId) => console.info("chat session", sessionId)}
+        />
+      );
+    }
+
+The website server must proxy /api/ielts-chatbot/* to
+https://api.mywsite.online/*, attach Authorization: Bearer <server secret>, and
+stream responses without buffering.
+
+Start with [docs/HANDOFF.md](docs/HANDOFF.md). Detailed contracts:
+
+- [Integration guide](docs/INTEGRATION.md)
+- [API and NDJSON contract](docs/API_CONTRACT.md)
+- [Session lifecycle](docs/SESSION_LIFECYCLE.md)
+- [Trusted proxy requirements](docs/PROXY.md)
+
+## Verify
+
+    npm test
+    npm run build
+    npm audit --omit=dev
+
+The production bundle is written to dist/.
