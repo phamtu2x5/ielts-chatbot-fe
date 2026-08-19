@@ -14,6 +14,7 @@ Frontend hiện hỗ trợ:
 - Dán ảnh trực tiếp từ clipboard.
 - Hiển thị Markdown/GFM, bao gồm bảng.
 - Dừng hoặc thử lại yêu cầu.
+- Bắt đầu trò chuyện mới và xóa memory/RAG của phiên cũ.
 - Tự quản lý UUID phiên và yêu cầu backend dọn memory/RAG khi phiên kết thúc.
 - Thông báo thân thiện cho lỗi xác thực, giới hạn, mạng và backend.
 

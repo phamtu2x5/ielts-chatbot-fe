@@ -76,6 +76,33 @@
   line-height: 20px;
 }
 
+.ieltsChatbotRoot .newChatButton {
+  margin-left: auto;
+  padding: 6px 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  border-radius: 8px;
+  color: var(--chatbot-ink);
+  background: transparent;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  cursor: pointer;
+  transition: color 160ms ease, background-color 160ms ease;
+}
+
+.ieltsChatbotRoot .newChatButton:hover:not(:disabled) {
+  color: var(--chatbot-primary);
+  background: var(--chatbot-primary-soft);
+}
+
+.ieltsChatbotRoot .newChatButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
 .ieltsChatbotRoot p {
   margin: 0;
 }

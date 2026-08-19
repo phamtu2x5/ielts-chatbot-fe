@@ -4,6 +4,7 @@ import {
   CheckCircle2,
   FileText,
   Paperclip,
+  RotateCcw,
   Send,
   Sparkles,
   UserRound,
@@ -200,6 +201,33 @@ export default function IELTSChatbot({
   const requestControllerRef = useRef(null);
   const hasStreamingAssistant = messages.some((message) => message.streaming);
 
+  function activateFreshSession() {
+    const nextSessionId = window.crypto.randomUUID();
+    storeCurrentSession(nextSessionId);
+    setSessionId(nextSessionId);
+    setMessages([]);
+    setPendingFiles([]);
+    setInput("");
+    setLastSessionActivity(Date.now());
+    setIsResettingSession(false);
+    shouldAutoScrollRef.current = true;
+  }
+
+  async function resetConversation() {
+    if (isSending || isUploading || isResettingSession) return;
+
+    setIsResettingSession(true);
+    queueSessionCleanup(sessionId);
+    try {
+      await client.deleteSession(sessionId);
+      completeSessionCleanup(sessionId);
+    } catch {
+      // The backend TTL cleans the queued session when immediate deletion fails.
+    } finally {
+      activateFreshSession();
+    }
+  }
+
   useEffect(() => {
     onSessionChange?.(sessionId);
   }, [onSessionChange, sessionId]);
@@ -254,15 +282,7 @@ export default function IELTSChatbot({
       } catch {
         // The backend hard TTL remains authoritative when the request fails.
       } finally {
-        const nextSessionId = window.crypto.randomUUID();
-        storeCurrentSession(nextSessionId);
-        setSessionId(nextSessionId);
-        setMessages([]);
-        setPendingFiles([]);
-        setInput("");
-        setLastSessionActivity(Date.now());
-        setIsResettingSession(false);
-        shouldAutoScrollRef.current = true;
+        activateFreshSession();
       }
     }, remaining);
     return () => window.clearTimeout(timeoutId);
@@ -562,6 +582,16 @@ export default function IELTSChatbot({
             </span>
             <h1>Trợ lý IELTS</h1>
           </div>
+          <button
+            className="newChatButton"
+            type="button"
+            onClick={resetConversation}
+            disabled={isSending || isUploading || isResettingSession}
+            aria-label="Bắt đầu trò chuyện mới"
+          >
+            <RotateCcw size={17} />
+            <span>{isResettingSession ? "Đang làm mới..." : "Trò chuyện mới"}</span>
+          </button>
         </header>
 
         <div

@@ -171,7 +171,8 @@ lịch sử và không lưu nội dung tài liệu trong local storage.
 2. Mọi chat/upload đều gửi UUID này.
 3. Đóng/reload gọi `expire`; backend chờ 5 phút trước khi dọn.
 4. Sau 30 phút không hoạt động, FE yêu cầu xóa phiên và tạo UUID mới.
-5. Backend TTL dọn phiên nếu cleanup từ browser thất bại.
+5. Nút `Trò chuyện mới` gọi `DELETE`, xóa memory/RAG cũ và tạo UUID mới.
+6. Backend TTL dọn phiên nếu cleanup từ browser thất bại.
 
 UUID không phải thông tin đăng nhập. Website vẫn dùng authentication riêng.
 

@@ -97,6 +97,27 @@ test("uploads a document with the backend session id", async () => {
   }
 });
 
+test("deletes conversation memory and RAG through the session endpoint", async () => {
+  const originalFetch = globalThis.fetch;
+  let request;
+  globalThis.fetch = async (url, options) => {
+    request = { url, options };
+    return new Response(JSON.stringify({ status: "deleted" }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  };
+
+  try {
+    const client = createChatbotClient("/api/ielts-chatbot");
+    await client.deleteSession("session-1");
+    assert.equal(request.url, "/api/ielts-chatbot/sessions/session-1");
+    assert.equal(request.options.method, "DELETE");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 test("hides raw browser network errors", () => {
   assert.equal(
     userFacingError(new TypeError("Failed to fetch")),
