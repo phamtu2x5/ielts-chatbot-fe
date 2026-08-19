@@ -543,19 +543,19 @@ export default function IELTSChatbot({
         throw new Error("Kết nối bị ngắt trước khi nhận xong câu trả lời.");
       }
     } catch (error) {
-      const message = userFacingError(error);
+      const errorMessage = userFacingError(error);
       setMessages((current) =>
-        current.map((message) =>
-          message.id === assistantId
+        current.map((currentMessage) =>
+          currentMessage.id === assistantId
             ? {
-                ...message,
-                content: message,
+                ...currentMessage,
+                content: errorMessage,
                 route_used: "error",
                 retryText: text || null,
                 streaming: false,
                 streamingStatus: "",
               }
-            : message
+            : currentMessage
         )
       );
     } finally {
