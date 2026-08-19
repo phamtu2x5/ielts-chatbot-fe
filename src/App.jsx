@@ -145,6 +145,25 @@ function MessageContent({ message }) {
 }
 
 function AttachmentCard({ attachment, onRemove }) {
+  if (attachment.previewUrl) {
+    return (
+      <div className={`imageAttachment ${attachment.status}`}>
+        <img src={attachment.previewUrl} alt={attachment.name} />
+        {onRemove && (
+          <button
+            className="imageAttachmentRemoveButton"
+            type="button"
+            title={`Bỏ ${attachment.name}`}
+            aria-label={`Bỏ ${attachment.name}`}
+            onClick={onRemove}
+          >
+            <X size={15} />
+          </button>
+        )}
+      </div>
+    );
+  }
+
   const statusText = {
     queued: "Sẵn sàng gửi",
     uploading: "Đang tải lên...",
@@ -199,9 +218,23 @@ export default function IELTSChatbot({
   const messagesRef = useRef(null);
   const shouldAutoScrollRef = useRef(true);
   const requestControllerRef = useRef(null);
+  const previewUrlsRef = useRef(new Set());
   const hasStreamingAssistant = messages.some((message) => message.streaming);
 
+  function releasePreviewUrl(previewUrl) {
+    if (!previewUrl || !previewUrlsRef.current.delete(previewUrl)) return;
+    window.URL.revokeObjectURL(previewUrl);
+  }
+
+  function releaseAllPreviewUrls() {
+    for (const previewUrl of previewUrlsRef.current) {
+      window.URL.revokeObjectURL(previewUrl);
+    }
+    previewUrlsRef.current.clear();
+  }
+
   function activateFreshSession() {
+    releaseAllPreviewUrls();
     const nextSessionId = window.crypto.randomUUID();
     storeCurrentSession(nextSessionId);
     setSessionId(nextSessionId);
@@ -260,6 +293,7 @@ export default function IELTSChatbot({
   useEffect(
     () => () => {
       requestControllerRef.current?.abort();
+      releaseAllPreviewUrls();
     },
     []
   );
@@ -314,18 +348,30 @@ export default function IELTSChatbot({
   }
 
   function queueFiles(selectedFiles) {
-    setPendingFiles((current) => {
-      const existing = new Set(current.map((item) => item.id));
-      const additions = selectedFiles
-        .map((file) => ({
-          id: `${file.name}-${file.size}-${file.lastModified}`,
-          file,
-          name: file.name,
-          status: "queued",
-        }))
-        .filter((item) => !existing.has(item.id));
-      return [...current, ...additions];
-    });
+    const existing = new Set(pendingFiles.map((item) => item.id));
+    const additions = [];
+    for (const file of selectedFiles) {
+      const id = `${file.name}-${file.size}-${file.lastModified}`;
+      if (existing.has(id)) continue;
+      existing.add(id);
+      const previewUrl = file.type.startsWith("image/")
+        ? window.URL.createObjectURL(file)
+        : null;
+      if (previewUrl) previewUrlsRef.current.add(previewUrl);
+      additions.push({
+        id,
+        file,
+        name: file.name,
+        previewUrl,
+        status: "queued",
+      });
+    }
+    setPendingFiles([...pendingFiles, ...additions]);
+  }
+
+  function removePendingFile(item) {
+    releasePreviewUrl(item.previewUrl);
+    setPendingFiles((current) => current.filter((file) => file.id !== item.id));
   }
 
   function pasteImages(event) {
@@ -392,7 +438,12 @@ export default function IELTSChatbot({
         id: userId,
         role: "user",
         content: text,
-        attachments: queuedFiles.map(({ id, name }) => ({ id, name, status: "queued" })),
+        attachments: queuedFiles.map(({ id, name, previewUrl }) => ({
+          id,
+          name,
+          previewUrl,
+          status: "queued",
+        })),
       },
       {
         id: assistantId,
@@ -679,7 +730,7 @@ export default function IELTSChatbot({
                 <AttachmentCard
                   key={item.id}
                   attachment={item}
-                  onRemove={() => setPendingFiles((current) => current.filter((file) => file.id !== item.id))}
+                  onRemove={() => removePendingFile(item)}
                 />
               ))}
             </div>

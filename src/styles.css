@@ -215,7 +215,8 @@
   background: var(--chatbot-primary);
 }
 
-.ieltsChatbotRoot .message.user .bubble:has(.attachmentCard) {
+.ieltsChatbotRoot .message.user .bubble:has(.attachmentCard),
+.ieltsChatbotRoot .message.user .bubble:has(.imageAttachment) {
   color: #172033;
   background: #f2f4f7;
 }
@@ -447,6 +448,58 @@
 .ieltsChatbotRoot .attachmentRemoveButton:hover {
   color: #172033;
   background: #e4e8ef;
+}
+
+.ieltsChatbotRoot .imageAttachment {
+  position: relative;
+  width: min(360px, 70vw);
+  overflow: hidden;
+  border: 1px solid #d0d5dd;
+  border-radius: 12px;
+  background: #f2f4f7;
+}
+
+.ieltsChatbotRoot .imageAttachment img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 260px;
+  object-fit: contain;
+}
+
+.ieltsChatbotRoot .imageAttachment.uploading {
+  opacity: 0.72;
+}
+
+.ieltsChatbotRoot .imageAttachment.error {
+  border-color: #f04438;
+}
+
+.ieltsChatbotRoot .imageAttachmentRemoveButton {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid rgba(23, 32, 51, 0.12);
+  border-radius: 50%;
+  color: #172033;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 1px 4px rgba(16, 24, 40, 0.14);
+  cursor: pointer;
+}
+
+.ieltsChatbotRoot .pendingAttachments .imageAttachment {
+  width: 180px;
+  flex: 0 0 180px;
+}
+
+.ieltsChatbotRoot .pendingAttachments .imageAttachment img {
+  height: 120px;
+  object-fit: cover;
 }
 
 .ieltsChatbotRoot .messageAttachments {
