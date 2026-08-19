@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { createChatbotClient } from "./api/chatbotClient.js";
+import { createChatbotClient, userFacingError } from "./api/chatbotClient.js";
 import {
   completeSessionCleanup,
   queueSessionCleanup,
@@ -99,27 +99,6 @@ function repairMultilineMarkdownTables(content) {
   }
 
   return repaired.join("\n");
-}
-
-function safeFilename(value) {
-  return (value || "rag-debug")
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-zA-Z0-9._-]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 80);
-}
-
-function downloadJson(filename, data) {
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  URL.revokeObjectURL(url);
 }
 
 function MessageContent({ message }) {
@@ -209,68 +188,9 @@ function AttachmentCard({ attachment, onRemove }) {
   );
 }
 
-function DebugPanel({ debug, sources, onDownload }) {
-  if (!debug) return null;
-
-  const sourceSummary = (sources || []).map((source) => ({
-    file: source.source_file,
-    pages: source.pages,
-    score: source.score,
-    dense: source.probe_dense_score,
-    keyword: source.probe_keyword_score,
-    question: source.probe_question_score,
-    overview: source.probe_overview_score,
-    chunk_id: source.chunk_id,
-    unit_type: source.metadata?.unit_type,
-    chunk_reason: source.metadata?.chunk_reason,
-    passage_number: source.metadata?.passage_number,
-    question_range: source.metadata?.question_range,
-    parent_id: source.metadata?.parent_id,
-    preview: (source.display_text || source.text)?.slice(0, 220),
-  }));
-
-  return (
-    <details className="debugPanel">
-      <summary>
-        <span className="debugSummaryTitle">
-          <Bug size={14} />
-          Debug pipeline
-        </span>
-        {onDownload && (
-          <button
-            className="debugDownloadButton"
-            type="button"
-            title="Tải câu hỏi, câu trả lời và debug"
-            onClick={(event) => {
-              event.preventDefault();
-              event.stopPropagation();
-              onDownload();
-            }}
-          >
-            <Download size={14} />
-          </button>
-        )}
-      </summary>
-      <pre>{JSON.stringify({ ...debug, sources: sourceSummary }, null, 2)}</pre>
-    </details>
-  );
-}
-
-function sourceScoreLabel(source) {
-  const question = Number(source.probe_question_score || 0);
-  const keyword = Number(source.probe_keyword_score || 0);
-  const overview = Number(source.probe_overview_score || source.overview_score || 0);
-  const dense = Number(source.probe_dense_score || source.score || 0);
-
-  if (question > 0) return `question ${question.toFixed(1)}`;
-  if (keyword > 0) return `keyword ${keyword.toFixed(1)}`;
-  if (overview > 0) return `overview ${overview.toFixed(1)}`;
-  if (dense > 0) return `dense ${dense.toFixed(2)}`;
-  return `score ${Number(source.score || 0).toFixed(2)}`;
-}
-
 export default function IELTSChatbot({
   apiBase = import.meta.env.VITE_CHATBOT_API_URL || "/api",
+  className = "",
   initialSessionId,
   onSessionChange,
 }) {
@@ -375,42 +295,6 @@ export default function IELTSChatbot({
     shouldAutoScrollRef.current = distanceFromBottom < 80;
   }
 
-  function exportDebug(message, index) {
-    const previousQuestion = [...messages.slice(0, index)]
-      .reverse()
-      .find((item) => item.role === "user" && item.content?.trim());
-    const debug = message.debug || {};
-    const queryIntent = debug.query_intent || debug.probe?.query_intent || null;
-    const routeDecision = debug.route_decision || message.route_used || null;
-    const payload = {
-      exported_at: new Date().toISOString(),
-      session_id: sessionId,
-      question: previousQuestion?.content || "",
-      answer: message.content || "",
-      route_used: message.route_used || null,
-      route_decision: routeDecision,
-      query_intent: queryIntent,
-      debug,
-      sources: message.sources || [],
-      source_previews: (message.sources || []).map((source) => ({
-        file: source.source_file,
-        pages: source.pages,
-        score: source.score,
-        dense: source.probe_dense_score,
-        keyword: source.probe_keyword_score,
-        question: source.probe_question_score,
-        overview: source.probe_overview_score,
-        chunk_id: source.chunk_id,
-        unit_type: source.metadata?.unit_type,
-        passage_number: source.metadata?.passage_number,
-        question_range: source.metadata?.question_range,
-        text: source.display_text || source.text || "",
-      })),
-    };
-    const suffix = safeFilename(previousQuestion?.content || message.route_used || "rag-debug");
-    downloadJson(`ielts-chatbot-debug-${suffix}-${Date.now()}.json`, payload);
-  }
-
   function selectFiles(event) {
     const selectedFiles = Array.from(event.target.files || []);
     if (!selectedFiles.length) return;
@@ -476,10 +360,10 @@ export default function IELTSChatbot({
     );
   }
 
-  async function sendMessage(event) {
+  async function sendMessage(event, retryText = "") {
     event?.preventDefault();
-    const text = input.trim();
-    const queuedFiles = pendingFiles;
+    const text = retryText.trim() || input.trim();
+    const queuedFiles = retryText ? [] : pendingFiles;
     if ((!text && !queuedFiles.length) || isSending || isUploading || isResettingSession) return;
 
     const submissionId = Date.now();
@@ -541,6 +425,7 @@ export default function IELTSChatbot({
               documentId: data.document_id,
             });
           } catch (error) {
+            if (error.name === "AbortError") throw error;
             failedFiles.push({ name: item.name, error: error.message });
             updateAttachment(userId, item.id, {
               status: "error",
@@ -549,27 +434,6 @@ export default function IELTSChatbot({
           }
         }
         setIsUploading(false);
-        setMessages((current) =>
-          current.map((message) =>
-            message.id === assistantId
-              ? {
-                  ...message,
-                  debug: {
-                    ...(message.debug || {}),
-                    uploads: {
-                      succeeded: uploadedFiles.map((data) => ({
-                        file_name: data.file_name,
-                        document_id: data.document_id,
-                        chunks_processed: data.chunks_processed,
-                        debug: data.debug,
-                      })),
-                      failed: failedFiles,
-                    },
-                  },
-                }
-              : message
-          )
-        );
       }
 
       if (!text) {
@@ -629,8 +493,6 @@ export default function IELTSChatbot({
                   ? {
                       ...message,
                       route_used: eventData.route_used,
-                      sources: eventData.sources || [],
-                      debug: { ...(message.debug || {}), ...(eventData.debug || {}) },
                     }
                   : message
               )
@@ -662,18 +524,6 @@ export default function IELTSChatbot({
               )
             );
           } else if (eventData.type === "error") {
-            if (eventData.detail) {
-              setMessages((current) =>
-                current.map((message) =>
-                  message.id === assistantId
-                    ? {
-                        ...message,
-                        debug: { ...(message.debug || {}), generation_error: eventData.detail },
-                      }
-                    : message
-                )
-              );
-            }
             throw new Error(eventData.message || "Yêu cầu không thành công");
           }
           },
@@ -683,10 +533,7 @@ export default function IELTSChatbot({
         throw new Error("Kết nối bị ngắt trước khi nhận xong câu trả lời.");
       }
     } catch (error) {
-      const message =
-        error.name === "AbortError"
-          ? "Yêu cầu đã bị dừng."
-          : error.message;
+      const message = userFacingError(error);
       setMessages((current) =>
         current.map((message) =>
           message.id === assistantId
@@ -694,6 +541,7 @@ export default function IELTSChatbot({
                 ...message,
                 content: message,
                 route_used: "error",
+                retryText: text || null,
                 streaming: false,
                 streamingStatus: "",
               }
@@ -715,7 +563,7 @@ export default function IELTSChatbot({
   }
 
   return (
-    <main className="ieltsChatbotRoot appShell">
+    <main className={`ieltsChatbotRoot appShell ${className}`.trim()}>
       <section className="chatPanel">
         <header className="toolbar">
           <div className="brand">
@@ -736,24 +584,15 @@ export default function IELTSChatbot({
               <div className="bubble">
                 <MessageContent message={message} />
                 {routeLabel(message.route_used) && <div className="route">{routeLabel(message.route_used)}</div>}
-                <DebugPanel
-                  debug={message.debug}
-                  sources={message.sources}
-                  onDownload={message.debug ? () => exportDebug(message, index) : null}
-                />
-                {message.sources?.length > 0 && (
-                  <div className="sources">
-                    {message.sources.map((source, sourceIndex) => (
-                      <details key={`${source.source_file}-${sourceIndex}`}>
-                        <summary>
-                          {source.source_file}
-                          {source.pages?.length ? ` · trang ${source.pages.join(", ")}` : ""} ·{" "}
-                          {sourceScoreLabel(source)}
-                        </summary>
-                        <p>{source.display_text || source.text}</p>
-                      </details>
-                    ))}
-                  </div>
+                {message.retryText && (
+                  <button
+                    className="retryButton"
+                    type="button"
+                    onClick={() => sendMessage(null, message.retryText)}
+                    disabled={isSending || isUploading || isResettingSession}
+                  >
+                    Thử lại
+                  </button>
                 )}
               </div>
             </article>
@@ -822,17 +661,23 @@ export default function IELTSChatbot({
             />
             <button
               className="sendButton"
-              type="submit"
-              disabled={
-                isSending ||
-                isUploading ||
-                isResettingSession ||
-                (!input.trim() && !pendingFiles.length)
+              type={isSending || isUploading ? "button" : "submit"}
+              onClick={
+                isSending || isUploading
+                  ? () => requestControllerRef.current?.abort()
+                  : undefined
               }
-              title={isSending || isUploading || isResettingSession ? "Đang xử lý" : "Gửi"}
-              aria-label={isSending || isUploading || isResettingSession ? "Đang xử lý" : "Gửi"}
+              disabled={
+                isResettingSession ||
+                (!isSending &&
+                  !isUploading &&
+                  !input.trim() &&
+                  !pendingFiles.length)
+              }
+              title={isSending || isUploading ? "Dừng" : isResettingSession ? "Đang làm mới phiên" : "Gửi"}
+              aria-label={isSending || isUploading ? "Dừng" : isResettingSession ? "Đang làm mới phiên" : "Gửi"}
             >
-              <Send size={18} />
+              {isSending || isUploading ? <X size={18} /> : <Send size={18} />}
             </button>
           </div>
         </form>

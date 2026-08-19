@@ -1,23 +1,20 @@
-:root {
+.ieltsChatbotRoot {
   color: #172033;
   background: #eef2f7;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
-* {
+.ieltsChatbotRoot,
+.ieltsChatbotRoot * {
   box-sizing: border-box;
 }
 
-body {
-  margin: 0;
-}
-
-button,
-textarea {
+.ieltsChatbotRoot button,
+.ieltsChatbotRoot textarea {
   font: inherit;
 }
 
-.appShell {
+.ieltsChatbotRoot.appShell {
   min-height: 100vh;
   padding: 24px;
   display: flex;
@@ -25,7 +22,7 @@ textarea {
   justify-content: center;
 }
 
-.chatPanel {
+.ieltsChatbotRoot .chatPanel {
   width: min(1080px, 100%);
   height: min(860px, calc(100vh - 48px));
   min-height: 620px;
@@ -38,7 +35,7 @@ textarea {
   box-shadow: 0 18px 55px rgba(38, 48, 71, 0.13);
 }
 
-.toolbar {
+.ieltsChatbotRoot .toolbar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -49,14 +46,14 @@ textarea {
   background: #fbfcfe;
 }
 
-.brand {
+.ieltsChatbotRoot .brand {
   min-width: 0;
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
-.brandIcon {
+.ieltsChatbotRoot .brandIcon {
   width: 42px;
   height: 42px;
   display: grid;
@@ -66,29 +63,29 @@ textarea {
   border-radius: 8px;
 }
 
-h1 {
+.ieltsChatbotRoot h1 {
   margin: 0;
   font-size: 18px;
   line-height: 1.2;
 }
 
-p {
+.ieltsChatbotRoot p {
   margin: 0;
 }
 
-.brand p {
+.ieltsChatbotRoot .brand p {
   margin-top: 3px;
   color: #667085;
   font-size: 13px;
 }
 
-.actions {
+.ieltsChatbotRoot .actions {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-.toggle {
+.ieltsChatbotRoot .toggle {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -98,15 +95,15 @@ p {
   user-select: none;
 }
 
-.toggle input {
+.ieltsChatbotRoot .toggle input {
   width: 18px;
   height: 18px;
   accent-color: #0f766e;
 }
 
-.iconButton,
-.composerIconButton,
-.sendButton {
+.ieltsChatbotRoot .iconButton,
+.ieltsChatbotRoot .composerIconButton,
+.ieltsChatbotRoot .sendButton {
   border: 0;
   border-radius: 8px;
   display: inline-flex;
@@ -120,18 +117,18 @@ p {
   padding: 0 14px;
 }
 
-.iconButton:disabled,
-.composerIconButton:disabled,
-.sendButton:disabled {
+.ieltsChatbotRoot .iconButton:disabled,
+.ieltsChatbotRoot .composerIconButton:disabled,
+.ieltsChatbotRoot .sendButton:disabled {
   cursor: not-allowed;
   opacity: 0.6;
 }
 
-.hiddenInput {
+.ieltsChatbotRoot .hiddenInput {
   display: none;
 }
 
-.statusLine {
+.ieltsChatbotRoot .statusLine {
   padding: 10px 20px;
   color: #175cd3;
   background: #eff8ff;
@@ -139,7 +136,7 @@ p {
   font-size: 14px;
 }
 
-.messages {
+.ieltsChatbotRoot .messages {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
@@ -152,17 +149,17 @@ p {
   gap: 16px;
 }
 
-.message {
+.ieltsChatbotRoot .message {
   display: flex;
   align-items: flex-start;
   gap: 10px;
 }
 
-.message.user {
+.ieltsChatbotRoot .message.user {
   flex-direction: row-reverse;
 }
 
-.avatar {
+.ieltsChatbotRoot .avatar {
   width: 34px;
   height: 34px;
   flex: 0 0 34px;
@@ -173,12 +170,12 @@ p {
   background: #dff7f3;
 }
 
-.message.user .avatar {
+.ieltsChatbotRoot .message.user .avatar {
   color: #344054;
   background: #edf0f5;
 }
 
-.bubble {
+.ieltsChatbotRoot .bubble {
   max-width: min(920px, 86%);
   padding: 13px 15px;
   border-radius: 8px;
@@ -186,74 +183,74 @@ p {
   line-height: 1.55;
 }
 
-.message.user .bubble {
+.ieltsChatbotRoot .message.user .bubble {
   max-width: min(760px, 78%);
   color: #ffffff;
   background: #155eef;
 }
 
-.message.user .bubble:has(.attachmentCard) {
+.ieltsChatbotRoot .message.user .bubble:has(.attachmentCard) {
   color: #172033;
   background: #f2f4f7;
 }
 
-.plainText {
+.ieltsChatbotRoot .plainText {
   white-space: pre-wrap;
 }
 
-.markdownText {
+.ieltsChatbotRoot .markdownText {
   color: #172033;
 }
 
-.markdownText > :first-child {
+.ieltsChatbotRoot .markdownText > :first-child {
   margin-top: 0;
 }
 
-.markdownText > :last-child {
+.ieltsChatbotRoot .markdownText > :last-child {
   margin-bottom: 0;
 }
 
-.markdownText p {
+.ieltsChatbotRoot .markdownText p {
   margin: 0 0 10px;
 }
 
-.markdownText h1,
-.markdownText h2,
-.markdownText h3,
-.markdownText h4 {
+.ieltsChatbotRoot .markdownText h1,
+.ieltsChatbotRoot .markdownText h2,
+.ieltsChatbotRoot .markdownText h3,
+.ieltsChatbotRoot .markdownText h4 {
   margin: 14px 0 8px;
   font-size: 16px;
   line-height: 1.35;
   letter-spacing: 0;
 }
 
-.markdownText ul,
-.markdownText ol {
+.ieltsChatbotRoot .markdownText ul,
+.ieltsChatbotRoot .markdownText ol {
   margin: 8px 0 12px;
   padding-left: 22px;
 }
 
-.markdownText li {
+.ieltsChatbotRoot .markdownText li {
   margin: 5px 0;
 }
 
-.markdownText strong {
+.ieltsChatbotRoot .markdownText strong {
   font-weight: 700;
 }
 
-.markdownText code {
+.ieltsChatbotRoot .markdownText code {
   padding: 2px 5px;
   border-radius: 5px;
   background: #e4e8ef;
   font-size: 0.94em;
 }
 
-.markdownText .tableScroll {
+.ieltsChatbotRoot .markdownText .tableScroll {
   width: 100%;
   overflow-x: auto;
 }
 
-.markdownText table {
+.ieltsChatbotRoot .markdownText table {
   width: 100%;
   min-width: 520px;
   margin: 10px 0 12px;
@@ -265,63 +262,63 @@ p {
   font-size: 14px;
 }
 
-.markdownText th,
-.markdownText td {
+.ieltsChatbotRoot .markdownText th,
+.ieltsChatbotRoot .markdownText td {
   padding: 9px 10px;
   border: 1px solid #d0d5dd;
   vertical-align: top;
   text-align: left;
 }
 
-.markdownText th {
+.ieltsChatbotRoot .markdownText th {
   color: #344054;
   background: #eef2f7;
   font-weight: 700;
 }
 
-.markdownText tr:nth-child(even) td {
+.ieltsChatbotRoot .markdownText tr:nth-child(even) td {
   background: #fafbfc;
 }
 
-.loadingBubble {
+.ieltsChatbotRoot .loadingBubble {
   display: inline-flex;
   align-items: center;
   gap: 10px;
   color: #475467;
 }
 
-.typingDots {
+.ieltsChatbotRoot .typingDots {
   display: inline-flex;
   align-items: center;
   gap: 4px;
 }
 
-.typingDots.compact span {
+.ieltsChatbotRoot .typingDots.compact span {
   width: 5px;
   height: 5px;
 }
 
-.typingDots span {
+.ieltsChatbotRoot .typingDots span {
   width: 7px;
   height: 7px;
   border-radius: 50%;
   background: #0f766e;
-  animation: typingPulse 1s infinite ease-in-out;
+  animation: ieltsChatbotTypingPulse 1s infinite ease-in-out;
 }
 
-.typingDots span:nth-child(2) {
+.ieltsChatbotRoot .typingDots span:nth-child(2) {
   animation-delay: 0.16s;
 }
 
-.typingDots span:nth-child(3) {
+.ieltsChatbotRoot .typingDots span:nth-child(3) {
   animation-delay: 0.32s;
 }
 
-.loadingText {
+.ieltsChatbotRoot .loadingText {
   font-size: 14px;
 }
 
-.inlineStatus {
+.ieltsChatbotRoot .inlineStatus {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -329,7 +326,7 @@ p {
   font-size: 14px;
 }
 
-.attachmentCard {
+.ieltsChatbotRoot .attachmentCard {
   width: min(360px, 100%);
   display: flex;
   align-items: center;
@@ -341,26 +338,26 @@ p {
   background: #ffffff;
 }
 
-.attachmentCard.queued {
+.ieltsChatbotRoot .attachmentCard.queued {
   background: #f8fafc;
 }
 
-.attachmentCard.uploading {
+.ieltsChatbotRoot .attachmentCard.uploading {
   border-color: #99d6cd;
   background: #f0fdfa;
 }
 
-.attachmentCard.ready {
+.ieltsChatbotRoot .attachmentCard.ready {
   border-color: #86d5a3;
   background: #f0fdf4;
 }
 
-.attachmentCard.error {
+.ieltsChatbotRoot .attachmentCard.error {
   border-color: #f6b0a1;
   background: #fff5f3;
 }
 
-.attachmentIcon {
+.ieltsChatbotRoot .attachmentIcon {
   width: 38px;
   height: 38px;
   flex: 0 0 38px;
@@ -371,43 +368,43 @@ p {
   background: #dff7f3;
 }
 
-.attachmentMeta {
+.ieltsChatbotRoot .attachmentMeta {
   min-width: 0;
   flex: 1;
   display: grid;
   gap: 2px;
 }
 
-.attachmentMeta strong,
-.attachmentMeta span {
+.ieltsChatbotRoot .attachmentMeta strong,
+.ieltsChatbotRoot .attachmentMeta span {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.attachmentMeta strong {
+.ieltsChatbotRoot .attachmentMeta strong {
   font-size: 14px;
   line-height: 1.25;
 }
 
-.attachmentMeta span {
+.ieltsChatbotRoot .attachmentMeta span {
   color: #667085;
   font-size: 12px;
 }
 
-.attachmentState {
+.ieltsChatbotRoot .attachmentState {
   flex: 0 0 auto;
 }
 
-.attachmentCard.ready .attachmentState {
+.ieltsChatbotRoot .attachmentCard.ready .attachmentState {
   color: #12a150;
 }
 
-.attachmentCard.error .attachmentState {
+.ieltsChatbotRoot .attachmentCard.error .attachmentState {
   color: #d92d20;
 }
 
-.attachmentRemoveButton {
+.ieltsChatbotRoot .attachmentRemoveButton {
   width: 30px;
   height: 30px;
   flex: 0 0 30px;
@@ -421,18 +418,18 @@ p {
   cursor: pointer;
 }
 
-.attachmentRemoveButton:hover {
+.ieltsChatbotRoot .attachmentRemoveButton:hover {
   color: #172033;
   background: #e4e8ef;
 }
 
-.messageAttachments {
+.ieltsChatbotRoot .messageAttachments {
   display: grid;
   gap: 8px;
   margin-top: 8px;
 }
 
-@keyframes typingPulse {
+@keyframes ieltsChatbotTypingPulse {
   0%,
   80%,
   100% {
@@ -446,7 +443,7 @@ p {
   }
 }
 
-.route {
+.ieltsChatbotRoot .route {
   width: fit-content;
   margin-top: 10px;
   padding: 3px 8px;
@@ -457,93 +454,27 @@ p {
   line-height: 1.4;
 }
 
-.message.user .route {
+.ieltsChatbotRoot .message.user .route {
   color: #e0eaff;
   background: rgba(255, 255, 255, 0.14);
 }
 
-.sources {
-  margin-top: 12px;
-  display: grid;
-  gap: 8px;
-}
-
-.debugPanel {
+.ieltsChatbotRoot .retryButton {
   margin-top: 10px;
-  border-color: #f4c430;
-  background: #fffbeb;
-}
-
-.debugPanel summary {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 6px;
-  color: #92400e;
-}
-
-.debugSummaryTitle {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.debugDownloadButton {
-  width: 30px;
-  height: 30px;
-  flex: 0 0 30px;
-  display: inline-grid;
-  place-items: center;
-  border: 1px solid #f3d27a;
+  padding: 6px 10px;
+  border: 1px solid #cbd5e1;
   border-radius: 8px;
-  color: #92400e;
-  background: #fff7d6;
-  cursor: pointer;
-}
-
-.debugDownloadButton:hover {
-  background: #fdecc8;
-}
-
-.debugPanel pre {
-  max-height: 320px;
-  margin: 10px 0 0;
-  padding: 10px;
-  overflow: auto;
-  border: 1px solid #f3d27a;
-  border-radius: 8px;
-  color: #422006;
-  background: #fff7d6;
-  font-size: 12px;
-  line-height: 1.45;
-  white-space: pre-wrap;
-}
-
-details {
-  padding: 10px;
-  border: 1px solid #d0d5dd;
-  border-radius: 8px;
-  background: #ffffff;
-}
-
-summary {
   color: #344054;
+  background: #ffffff;
   cursor: pointer;
-  font-size: 13px;
-  font-weight: 600;
 }
 
-details p {
-  margin-top: 8px;
-  color: #475467;
-  font-size: 13px;
+.ieltsChatbotRoot .retryButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
-.sources details p {
-  white-space: pre-wrap;
-}
-
-.composer {
+.ieltsChatbotRoot .composer {
   flex: 0 0 auto;
   display: flex;
   flex-direction: column;
@@ -553,7 +484,7 @@ details p {
   background: #fbfcfe;
 }
 
-.pendingAttachments {
+.ieltsChatbotRoot .pendingAttachments {
   width: 100%;
   display: flex;
   gap: 8px;
@@ -561,21 +492,21 @@ details p {
   overflow-x: auto;
 }
 
-.pendingAttachments .attachmentCard {
+.ieltsChatbotRoot .pendingAttachments .attachmentCard {
   width: 290px;
   min-width: 240px;
   flex: 0 0 auto;
 }
 
-.composerControls {
+.ieltsChatbotRoot .composerControls {
   display: flex;
   align-items: flex-end;
   gap: 10px;
   width: 100%;
 }
 
-.composerControls .composerIconButton,
-.composerControls .sendButton {
+.ieltsChatbotRoot .composerControls .composerIconButton,
+.ieltsChatbotRoot .composerControls .sendButton {
   height: 46px;
   min-height: 46px;
   width: 46px;
@@ -583,14 +514,14 @@ details p {
   padding: 0;
 }
 
-.composerIconButton {
+.ieltsChatbotRoot .composerIconButton {
   flex: 0 0 auto;
   color: #0f766e;
   background: #dff7f3;
   border: 1px solid #b9ebe4;
 }
 
-textarea {
+.ieltsChatbotRoot textarea {
   flex: 1;
   min-height: 46px;
   max-height: 140px;
@@ -601,51 +532,51 @@ textarea {
   outline: none;
 }
 
-textarea:focus {
+.ieltsChatbotRoot textarea:focus {
   border-color: #0f766e;
   box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.14);
 }
 
 @media (max-width: 720px) {
-  .appShell {
+  .ieltsChatbotRoot.appShell {
     padding: 0;
   }
 
-  .chatPanel {
+  .ieltsChatbotRoot .chatPanel {
     height: 100dvh;
     min-height: 100dvh;
     border: 0;
     border-radius: 0;
   }
 
-  .toolbar,
-  .composer {
+  .ieltsChatbotRoot .toolbar,
+  .ieltsChatbotRoot .composer {
     align-items: stretch;
     flex-direction: column;
   }
 
-  .actions {
+  .ieltsChatbotRoot .actions {
     width: 100%;
   }
 
-  .iconButton {
+  .ieltsChatbotRoot .iconButton {
     width: 100%;
   }
 
-  .composerControls {
+  .ieltsChatbotRoot .composerControls {
     align-items: flex-end;
   }
 
-  .composerControls .composerIconButton,
-  .composerControls .sendButton {
+  .ieltsChatbotRoot .composerControls .composerIconButton,
+  .ieltsChatbotRoot .composerControls .sendButton {
     width: 46px;
   }
 
-  .bubble {
+  .ieltsChatbotRoot .bubble {
     max-width: 92%;
   }
 
-  .message.user .bubble {
+  .ieltsChatbotRoot .message.user .bubble {
     max-width: 86%;
   }
 }
