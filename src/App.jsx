@@ -1,9 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Bot,
-  Bug,
   CheckCircle2,
-  Download,
   FileText,
   Paperclip,
   Send,
@@ -12,18 +10,18 @@ import {
   X,
   XCircle,
 } from "lucide-react";
-import { createRoot } from "react-dom/client";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { createChatbotClient } from "./api/chatbotClient.js";
+import {
+  completeSessionCleanup,
+  queueSessionCleanup,
+  SESSION_HARD_TTL_MS,
+  startEphemeralSession,
+  storeCurrentSession,
+} from "./session/sessionManager.js";
 import "./styles.css";
 
-const API_BASE = import.meta.env.VITE_CHATBOT_API_URL || "/api";
-const SESSION_STORAGE_KEY = "ielts-chatbot-session-id";
-const SESSION_LIST_STORAGE_KEY = "ielts-chatbot-sessions-v1";
-const SESSION_DATA_PREFIX = "ielts-chatbot-session-v1:";
-const SESSION_CLEANUP_STORAGE_KEY = "ielts-chatbot-session-cleanup-v1";
-const SESSION_HARD_TTL_MS = 30 * 60 * 1000;
-const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const WELCOME_MESSAGE = {
   id: "welcome",
   role: "assistant",
@@ -31,67 +29,6 @@ const WELCOME_MESSAGE = {
     "Xin chào, mình là trợ lý IELTS của bạn. Bạn có thể hỏi về Reading, Listening, Writing, Speaking hoặc tải tài liệu lên để mình hỗ trợ phân tích nội dung.",
   route_used: "welcome",
 };
-
-function storedCleanupIds() {
-  try {
-    const stored = JSON.parse(window.localStorage.getItem(SESSION_CLEANUP_STORAGE_KEY) || "[]");
-    return Array.isArray(stored) ? stored.filter((id) => UUID_PATTERN.test(id)) : [];
-  } catch {
-    return [];
-  }
-}
-
-function saveCleanupIds(ids) {
-  try {
-    window.localStorage.setItem(
-      SESSION_CLEANUP_STORAGE_KEY,
-      JSON.stringify([...new Set(ids.filter((id) => UUID_PATTERN.test(id)))])
-    );
-  } catch {
-    // Cleanup still proceeds for the current page when storage is unavailable.
-  }
-}
-
-function queueSessionCleanup(sessionId) {
-  if (UUID_PATTERN.test(sessionId || "")) {
-    saveCleanupIds([...storedCleanupIds(), sessionId]);
-  }
-}
-
-function completeSessionCleanup(sessionId) {
-  saveCleanupIds(storedCleanupIds().filter((id) => id !== sessionId));
-}
-
-function startEphemeralSession() {
-  const staleIds = new Set(storedCleanupIds());
-  try {
-    const tabSessionId = window.sessionStorage.getItem(SESSION_STORAGE_KEY);
-    const legacySessionId = window.localStorage.getItem(SESSION_STORAGE_KEY);
-    if (UUID_PATTERN.test(tabSessionId || "")) staleIds.add(tabSessionId);
-    if (UUID_PATTERN.test(legacySessionId || "")) staleIds.add(legacySessionId);
-    const legacySessions = JSON.parse(
-      window.localStorage.getItem(SESSION_LIST_STORAGE_KEY) || "[]"
-    );
-    for (const session of Array.isArray(legacySessions) ? legacySessions : []) {
-      if (UUID_PATTERN.test(session?.id || "")) staleIds.add(session.id);
-    }
-    for (const sessionId of staleIds) {
-      window.localStorage.removeItem(`${SESSION_DATA_PREFIX}${sessionId}`);
-    }
-    window.localStorage.removeItem(SESSION_STORAGE_KEY);
-    window.localStorage.removeItem(SESSION_LIST_STORAGE_KEY);
-  } catch {
-    // A fresh in-memory session still works when browser storage is unavailable.
-  }
-  const currentId = window.crypto.randomUUID();
-  try {
-    window.sessionStorage.setItem(SESSION_STORAGE_KEY, currentId);
-  } catch {
-    // The UUID remains valid for the current page lifecycle.
-  }
-  saveCleanupIds([...staleIds]);
-  return { currentId, staleIds: [...staleIds] };
-}
 
 const routeLabels = {
   base_model: "Model chính",
@@ -183,44 +120,6 @@ function downloadJson(filename, data) {
   link.click();
   link.remove();
   URL.revokeObjectURL(url);
-}
-
-function completedConversationHistory(messages) {
-  const completed = [];
-  for (let index = 0; index < messages.length; index += 1) {
-    const user = messages[index];
-    if (user.role !== "user" || !user.content?.trim()) continue;
-    const assistant = messages[index + 1];
-    if (
-      !assistant ||
-      assistant.role !== "assistant" ||
-      assistant.streaming ||
-      !assistant.content?.trim() ||
-      [
-        "welcome",
-        "upload",
-        "error",
-        "vector_rag_ambiguous_document",
-        "vector_rag_no_match",
-        "route_undetermined",
-        "intent_undetermined",
-      ].includes(assistant.route_used)
-    ) {
-      continue;
-    }
-    completed.push(
-      { role: "user", content: user.content.trim() },
-      { role: "assistant", content: assistant.content.trim() }
-    );
-  }
-  const selected = [];
-  let totalChars = 0;
-  for (const message of completed.slice(-8).reverse()) {
-    if (selected.length && totalChars + message.content.length > 12000) break;
-    selected.push(message);
-    totalChars += message.content.length;
-  }
-  return selected.reverse();
 }
 
 function MessageContent({ message }) {
@@ -370,8 +269,13 @@ function sourceScoreLabel(source) {
   return `score ${Number(source.score || 0).toFixed(2)}`;
 }
 
-function App() {
-  const [initialSession] = useState(startEphemeralSession);
+export default function IELTSChatbot({
+  apiBase = import.meta.env.VITE_CHATBOT_API_URL || "/api",
+  initialSessionId,
+  onSessionChange,
+}) {
+  const client = useMemo(() => createChatbotClient(apiBase), [apiBase]);
+  const [initialSession] = useState(() => startEphemeralSession(initialSessionId));
   const [sessionId, setSessionId] = useState(initialSession.currentId);
   const [messages, setMessages] = useState([{ ...WELCOME_MESSAGE }]);
   const [input, setInput] = useState("");
@@ -379,44 +283,48 @@ function App() {
   const [isUploading, setIsUploading] = useState(false);
   const [isResettingSession, setIsResettingSession] = useState(false);
   const [pendingFiles, setPendingFiles] = useState([]);
-  const [conversationState, setConversationState] = useState(null);
   const [lastSessionActivity, setLastSessionActivity] = useState(Date.now());
   const fileInputRef = useRef(null);
   const messagesRef = useRef(null);
   const shouldAutoScrollRef = useRef(true);
+  const requestControllerRef = useRef(null);
   const hasStreamingAssistant = messages.some((message) => message.streaming);
 
-  const history = useMemo(() => completedConversationHistory(messages), [messages]);
+  useEffect(() => {
+    onSessionChange?.(sessionId);
+  }, [onSessionChange, sessionId]);
 
   useEffect(() => {
     for (const staleSessionId of initialSession.staleIds) {
-      fetch(`${API_BASE}/sessions/${staleSessionId}/expire`, { method: "POST" })
-        .then((response) => {
-          if (response.ok) completeSessionCleanup(staleSessionId);
-        })
+      client
+        .expireSession(staleSessionId)
+        .then(() => completeSessionCleanup(staleSessionId))
         .catch(() => {});
     }
-  }, [initialSession.staleIds]);
+  }, [client, initialSession.staleIds]);
 
   useEffect(() => {
     const cleanupCurrentSession = () => {
       queueSessionCleanup(sessionId);
-      const expireUrl = `${API_BASE}/sessions/${sessionId}/expire`;
+      const expireUrl = client.expireUrl(sessionId);
       if (typeof navigator.sendBeacon === "function" && navigator.sendBeacon(expireUrl)) {
         return;
       }
-      fetch(expireUrl, {
-        method: "POST",
-        keepalive: true,
-      })
-        .then((response) => {
-          if (response.ok) completeSessionCleanup(sessionId);
-        })
+      client
+        .expireSession(sessionId, { keepalive: true })
+        .then(() => completeSessionCleanup(sessionId))
         .catch(() => {});
     };
     window.addEventListener("pagehide", cleanupCurrentSession);
     return () => window.removeEventListener("pagehide", cleanupCurrentSession);
-  }, [sessionId]);
+  }, [client, sessionId]);
+
+  useEffect(
+    () => () => {
+      requestControllerRef.current?.abort();
+    },
+    []
+  );
 
   useEffect(() => {
     const remaining = Math.max(
@@ -431,19 +339,13 @@ function App() {
       setIsResettingSession(true);
       queueSessionCleanup(sessionId);
       try {
-        const response = await fetch(`${API_BASE}/sessions/${sessionId}`, {
-          method: "DELETE",
-        });
-        if (response.ok) completeSessionCleanup(sessionId);
+        await client.deleteSession(sessionId);
+        completeSessionCleanup(sessionId);
       } catch {
         // The backend hard TTL remains authoritative when the request fails.
       } finally {
         const nextSessionId = window.crypto.randomUUID();
-        try {
-          window.sessionStorage.setItem(SESSION_STORAGE_KEY, nextSessionId);
-        } catch {
-          // The UUID remains valid for the current page lifecycle.
-        }
+        storeCurrentSession(nextSessionId);
         setSessionId(nextSessionId);
         setMessages([
           {
@@ -451,7 +353,6 @@ function App() {
             content: "Phiên trước đã hết hạn sau 30 phút không hoạt động. Mình đã bắt đầu một phiên mới cho bạn.",
           },
         ]);
-        setConversationState(null);
         setPendingFiles([]);
         setInput("");
         setLastSessionActivity(Date.now());
@@ -460,7 +361,7 @@ function App() {
       }
     }, remaining);
     return () => window.clearTimeout(timeoutId);
-  }, [sessionId, lastSessionActivity, isSending, isUploading, isResettingSession]);
+  }, [client, sessionId, lastSessionActivity, isSending, isUploading, isResettingSession]);
 
   useEffect(() => {
     const container = messagesRef.current;
@@ -575,21 +476,6 @@ function App() {
     );
   }
 
-  async function uploadFile(file) {
-    const formData = new FormData();
-    formData.append("session_id", sessionId);
-    formData.append("file", file);
-    const response = await fetch(`${API_BASE}/documents/upload`, {
-      method: "POST",
-      body: formData,
-    });
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({}));
-      throw new Error(error.detail || "Tải tài liệu không thành công");
-    }
-    return response.json();
-  }
-
   async function sendMessage(event) {
     event?.preventDefault();
     const text = input.trim();
@@ -603,6 +489,8 @@ function App() {
     setInput("");
     setPendingFiles([]);
     setIsSending(true);
+    const requestController = new AbortController();
+    requestControllerRef.current = requestController;
     shouldAutoScrollRef.current = true;
     setMessages((current) => [
       ...current,
@@ -640,7 +528,11 @@ function App() {
             )
           );
           try {
-            const data = await uploadFile(item.file);
+            const data = await client.uploadDocument(
+              sessionId,
+              item.file,
+              requestController.signal
+            );
             uploadedFiles.push(data);
             updateAttachment(userId, item.id, {
               name: data.file_name,
@@ -657,21 +549,6 @@ function App() {
           }
         }
         setIsUploading(false);
-        if (uploadedFiles.length) {
-          if (uploadedFiles.length === 1) {
-            setConversationState((current) => ({
-              ...(current || {}),
-              last_route: current?.last_route || null,
-              last_intent: current?.last_intent || null,
-              user_facts: current?.user_facts || [],
-              rag_affinity: {
-                document_ids: [uploadedFiles[0].document_id],
-                passage_numbers: [],
-                question_ranges: [],
-              },
-            }));
-          }
-        }
         setMessages((current) =>
           current.map((message) =>
             message.id === assistantId
@@ -726,46 +603,19 @@ function App() {
           message.id === assistantId ? { ...message, streamingStatus: "Đang gửi câu hỏi..." } : message
         )
       );
-      const response = await fetch(`${API_BASE}/chat/stream`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      let streamCompleted = false;
+      await client.streamChat(
+        {
           session_id: sessionId,
           message: text,
-          conversation_history: history,
           document_ids: uploadedFiles.length
             ? uploadedFiles.map((data) => data.document_id)
             : null,
           document_scope: uploadedFiles.length ? "explicit" : "available",
-          conversation_state: conversationState,
-        }),
-      });
-      if (!response.ok || !response.body) {
-        const error = await response.json().catch(() => ({}));
-        throw new Error(error.detail || "Yêu cầu không thành công");
-      }
-
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = "";
-      let pendingConversationState = null;
-      let streamCompleted = false;
-
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split("\n");
-        buffer = lines.pop() || "";
-
-        for (const line of lines) {
-          if (!line.trim()) continue;
-          let eventData;
-          try {
-            eventData = JSON.parse(line);
-          } catch {
-            throw new Error("Dữ liệu stream từ backend không hợp lệ");
-          }
+        },
+        {
+          signal: requestController.signal,
+          onEvent: async (eventData) => {
           if (eventData.type === "status") {
             setMessages((current) =>
               current.map((message) =>
@@ -773,9 +623,6 @@ function App() {
               )
             );
           } else if (eventData.type === "metadata") {
-            if (eventData.conversation_state) {
-              pendingConversationState = eventData.conversation_state;
-            }
             setMessages((current) =>
               current.map((message) =>
                 message.id === assistantId
@@ -802,9 +649,6 @@ function App() {
             );
           } else if (eventData.type === "done") {
             streamCompleted = true;
-            if (pendingConversationState) {
-              setConversationState(pendingConversationState);
-            }
             setMessages((current) =>
               current.map((message) =>
                 message.id === assistantId
@@ -832,18 +676,23 @@ function App() {
             }
             throw new Error(eventData.message || "Yêu cầu không thành công");
           }
+          },
         }
-      }
+      );
       if (!streamCompleted) {
         throw new Error("Kết nối bị ngắt trước khi nhận xong câu trả lời.");
       }
     } catch (error) {
+      const message =
+        error.name === "AbortError"
+          ? "Yêu cầu đã bị dừng."
+          : error.message;
       setMessages((current) =>
         current.map((message) =>
           message.id === assistantId
             ? {
                 ...message,
-                content: error.message,
+                content: message,
                 route_used: "error",
                 streaming: false,
                 streamingStatus: "",
@@ -859,11 +708,14 @@ function App() {
       );
       setIsSending(false);
       setIsUploading(false);
+      if (requestControllerRef.current === requestController) {
+        requestControllerRef.current = null;
+      }
     }
   }
 
   return (
-    <main className="appShell">
+    <main className="ieltsChatbotRoot appShell">
       <section className="chatPanel">
         <header className="toolbar">
           <div className="brand">
@@ -988,5 +840,3 @@ function App() {
     </main>
   );
 }
-
-createRoot(document.getElementById("root")).render(<App />);
