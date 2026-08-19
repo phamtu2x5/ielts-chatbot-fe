@@ -1,8 +1,5 @@
 # Bàn giao IELTS Chatbot Frontend
 
-Đây là tài liệu duy nhất cần đọc để chạy lại frontend hiện tại và tích hợp nó
-vào tab Chatbot của hệ thống IELTS.
-
 ## 1. Thông tin cần bàn giao
 
 1. Repository `phamtu2x5/ielts-chatbot-fe`.
