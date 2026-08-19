@@ -44,8 +44,9 @@ tests/                      Contract tests của FE
 docs/HANDOFF.md             Hướng dẫn chạy lại và tích hợp
 ```
 
-Giao diện hiện tại là baseline kỹ thuật. Việc thiết kế lại để khớp hệ thống
-IELTS được thực hiện sau khi tích hợp.
+Giao diện hiện tại đã được căn theo card AI Chatbot của hệ thống IELTS tham
+chiếu. Component chỉ chứa phần chatbot; sidebar, breadcrumb và tài khoản vẫn do
+ứng dụng chủ quản lý.
 
 ## Bàn giao
 

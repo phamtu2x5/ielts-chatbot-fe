@@ -1,6 +1,12 @@
 .ieltsChatbotRoot {
-  color: #172033;
-  background: #eef2f7;
+  --chatbot-primary: #ba2626;
+  --chatbot-primary-soft: #fdf0ef;
+  --chatbot-ink: #0f1729;
+  --chatbot-muted: #4e5e73;
+  --chatbot-border: #e1e7ef;
+  --chatbot-background: #fcfcfa;
+  color: var(--chatbot-ink);
+  background: transparent;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
@@ -15,7 +21,8 @@
 }
 
 .ieltsChatbotRoot.appShell {
-  min-height: 100vh;
+  width: 100%;
+  min-height: min(720px, 100vh);
   padding: 24px;
   display: flex;
   align-items: center;
@@ -23,16 +30,16 @@
 }
 
 .ieltsChatbotRoot .chatPanel {
-  width: min(1080px, 100%);
-  height: min(860px, calc(100vh - 48px));
-  min-height: 620px;
+  width: min(1280px, 100%);
+  height: min(760px, calc(100vh - 48px));
+  min-height: 570px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   background: #ffffff;
-  border: 1px solid #d7dde8;
-  border-radius: 8px;
-  box-shadow: 0 18px 55px rgba(38, 48, 71, 0.13);
+  border: 1px solid var(--chatbot-border);
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(15, 23, 41, 0.04);
 }
 
 .ieltsChatbotRoot .toolbar {
@@ -40,84 +47,52 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 18px;
-  padding: 18px 20px;
-  border-bottom: 1px solid #e4e8ef;
-  background: #fbfcfe;
+  gap: 12px;
+  min-height: 51px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--chatbot-border);
+  background: #ffffff;
 }
 
 .ieltsChatbotRoot .brand {
   min-width: 0;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
 }
 
 .ieltsChatbotRoot .brandIcon {
-  width: 42px;
-  height: 42px;
+  width: 16px;
+  height: 16px;
   display: grid;
   place-items: center;
-  color: #0f766e;
-  background: #dff7f3;
-  border-radius: 8px;
+  color: var(--chatbot-muted);
 }
 
 .ieltsChatbotRoot h1 {
   margin: 0;
-  font-size: 18px;
-  line-height: 1.2;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
 }
 
 .ieltsChatbotRoot p {
   margin: 0;
 }
 
-.ieltsChatbotRoot .brand p {
-  margin-top: 3px;
-  color: #667085;
-  font-size: 13px;
-}
-
-.ieltsChatbotRoot .actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.ieltsChatbotRoot .toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  color: #344054;
-  font-size: 14px;
-  cursor: pointer;
-  user-select: none;
-}
-
-.ieltsChatbotRoot .toggle input {
-  width: 18px;
-  height: 18px;
-  accent-color: #0f766e;
-}
-
-.ieltsChatbotRoot .iconButton,
-.ieltsChatbotRoot .composerIconButton,
-.ieltsChatbotRoot .sendButton {
-  border: 0;
-  border-radius: 8px;
+.ieltsChatbotRoot .betaBadge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  color: #ffffff;
-  background: #0f766e;
-  cursor: pointer;
-  min-height: 40px;
-  padding: 0 14px;
+  min-height: 24px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  color: #334155;
+  background: #f6f7f9;
+  font-size: 12px;
+  font-weight: 500;
 }
 
-.ieltsChatbotRoot .iconButton:disabled,
 .ieltsChatbotRoot .composerIconButton:disabled,
 .ieltsChatbotRoot .sendButton:disabled {
   cursor: not-allowed;
@@ -128,14 +103,6 @@
   display: none;
 }
 
-.ieltsChatbotRoot .statusLine {
-  padding: 10px 20px;
-  color: #175cd3;
-  background: #eff8ff;
-  border-bottom: 1px solid #b2ddff;
-  font-size: 14px;
-}
-
 .ieltsChatbotRoot .messages {
   flex: 1;
   min-height: 0;
@@ -143,10 +110,51 @@
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
   -webkit-overflow-scrolling: touch;
-  padding: 22px 22px 28px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+.ieltsChatbotRoot .messages.empty {
+  justify-content: center;
+}
+
+.ieltsChatbotRoot .emptyState {
+  width: min(480px, 100%);
+  margin: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.ieltsChatbotRoot .emptyStateIcon {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border: 1px solid #f2d5d3;
+  border-radius: 14px;
+  color: var(--chatbot-primary);
+  background: var(--chatbot-primary-soft);
+}
+
+.ieltsChatbotRoot .emptyState h2 {
+  margin: 0;
+  color: var(--chatbot-ink);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+}
+
+.ieltsChatbotRoot .emptyState p {
+  max-width: 460px;
+  color: var(--chatbot-muted);
+  font-size: 14px;
+  line-height: 22px;
 }
 
 .ieltsChatbotRoot .message {
@@ -160,14 +168,14 @@
 }
 
 .ieltsChatbotRoot .avatar {
-  width: 34px;
-  height: 34px;
-  flex: 0 0 34px;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
   display: grid;
   place-items: center;
   border-radius: 50%;
-  color: #0f766e;
-  background: #dff7f3;
+  color: var(--chatbot-primary);
+  background: var(--chatbot-primary-soft);
 }
 
 .ieltsChatbotRoot .message.user .avatar {
@@ -177,16 +185,16 @@
 
 .ieltsChatbotRoot .bubble {
   max-width: min(920px, 86%);
-  padding: 13px 15px;
-  border-radius: 8px;
-  background: #f2f4f7;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #f6f7f9;
   line-height: 1.55;
 }
 
 .ieltsChatbotRoot .message.user .bubble {
   max-width: min(760px, 78%);
   color: #ffffff;
-  background: #155eef;
+  background: var(--chatbot-primary);
 }
 
 .ieltsChatbotRoot .message.user .bubble:has(.attachmentCard) {
@@ -199,7 +207,7 @@
 }
 
 .ieltsChatbotRoot .markdownText {
-  color: #172033;
+  color: var(--chatbot-ink);
 }
 
 .ieltsChatbotRoot .markdownText > :first-child {
@@ -302,7 +310,7 @@
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #0f766e;
+  background: var(--chatbot-primary);
   animation: ieltsChatbotTypingPulse 1s infinite ease-in-out;
 }
 
@@ -364,8 +372,8 @@
   display: grid;
   place-items: center;
   border-radius: 8px;
-  color: #0f766e;
-  background: #dff7f3;
+  color: var(--chatbot-primary);
+  background: var(--chatbot-primary-soft);
 }
 
 .ieltsChatbotRoot .attachmentMeta {
@@ -443,22 +451,6 @@
   }
 }
 
-.ieltsChatbotRoot .route {
-  width: fit-content;
-  margin-top: 10px;
-  padding: 3px 8px;
-  border-radius: 999px;
-  color: #475467;
-  background: rgba(255, 255, 255, 0.72);
-  font-size: 12px;
-  line-height: 1.4;
-}
-
-.ieltsChatbotRoot .message.user .route {
-  color: #e0eaff;
-  background: rgba(255, 255, 255, 0.14);
-}
-
 .ieltsChatbotRoot .retryButton {
   margin-top: 10px;
   padding: 6px 10px;
@@ -467,6 +459,49 @@
   color: #344054;
   background: #ffffff;
   cursor: pointer;
+}
+
+.ieltsChatbotRoot .quickStart {
+  flex: 0 0 auto;
+  padding: 12px 20px;
+  border-top: 1px solid var(--chatbot-border);
+  background: #ffffff;
+}
+
+.ieltsChatbotRoot .quickStartLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 8px;
+  color: var(--chatbot-muted);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+}
+
+.ieltsChatbotRoot .quickPromptList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ieltsChatbotRoot .quickPromptList button {
+  min-height: 38px;
+  padding: 8px 12px;
+  border: 1px solid var(--chatbot-border);
+  border-radius: 10px;
+  color: var(--chatbot-ink);
+  background: var(--chatbot-background);
+  font-size: 14px;
+  line-height: 20px;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 160ms ease, background-color 160ms ease;
+}
+
+.ieltsChatbotRoot .quickPromptList button:hover {
+  border-color: #e5aaaa;
+  background: var(--chatbot-primary-soft);
 }
 
 .ieltsChatbotRoot .retryButton:disabled {
@@ -479,9 +514,9 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: 16px;
-  border-top: 1px solid #e4e8ef;
-  background: #fbfcfe;
+  padding: 20px;
+  border-top: 1px solid var(--chatbot-border);
+  background: #ffffff;
 }
 
 .ieltsChatbotRoot .pendingAttachments {
@@ -507,34 +542,57 @@
 
 .ieltsChatbotRoot .composerControls .composerIconButton,
 .ieltsChatbotRoot .composerControls .sendButton {
-  height: 46px;
-  min-height: 46px;
-  width: 46px;
-  min-width: 46px;
+  height: 44px;
+  min-height: 44px;
+  width: 44px;
+  min-width: 44px;
   padding: 0;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
 }
 
 .ieltsChatbotRoot .composerIconButton {
   flex: 0 0 auto;
-  color: #0f766e;
-  background: #dff7f3;
-  border: 1px solid #b9ebe4;
+  color: var(--chatbot-primary);
+  background: var(--chatbot-primary-soft);
+  border: 1px solid #f2d5d3;
+}
+
+.ieltsChatbotRoot .sendButton {
+  color: #ffffff;
+  background: var(--chatbot-primary);
+  border: 0;
 }
 
 .ieltsChatbotRoot textarea {
   flex: 1;
-  min-height: 46px;
+  min-height: 44px;
   max-height: 140px;
   resize: vertical;
-  padding: 12px 14px;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
+  padding: 11px 12px;
+  border: 1px solid var(--chatbot-border);
+  border-radius: 10px;
+  color: var(--chatbot-ink);
+  background: transparent;
+  font-size: 14px;
+  line-height: 20px;
   outline: none;
+  box-shadow: 0 1px 3px rgba(15, 23, 41, 0.02);
 }
 
 .ieltsChatbotRoot textarea:focus {
-  border-color: #0f766e;
-  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.14);
+  border-color: #d98c8c;
+  box-shadow: 0 0 0 3px rgba(186, 38, 38, 0.1);
+}
+
+.ieltsChatbotRoot .composerHint {
+  margin: 0;
+  color: var(--chatbot-muted);
+  font-size: 12px;
+  line-height: 16px;
 }
 
 @media (max-width: 720px) {
@@ -549,18 +607,8 @@
     border-radius: 0;
   }
 
-  .ieltsChatbotRoot .toolbar,
-  .ieltsChatbotRoot .composer {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .ieltsChatbotRoot .actions {
-    width: 100%;
-  }
-
-  .ieltsChatbotRoot .iconButton {
-    width: 100%;
+  .ieltsChatbotRoot .toolbar {
+    padding: 14px 16px;
   }
 
   .ieltsChatbotRoot .composerControls {
@@ -569,7 +617,21 @@
 
   .ieltsChatbotRoot .composerControls .composerIconButton,
   .ieltsChatbotRoot .composerControls .sendButton {
-    width: 46px;
+    width: 44px;
+  }
+
+  .ieltsChatbotRoot .messages {
+    padding: 16px;
+  }
+
+  .ieltsChatbotRoot .quickStart,
+  .ieltsChatbotRoot .composer {
+    padding: 12px 16px;
+  }
+
+  .ieltsChatbotRoot .quickPromptList {
+    display: grid;
+    grid-template-columns: 1fr;
   }
 
   .ieltsChatbotRoot .bubble {

@@ -23,28 +23,17 @@ import {
 import "./styles.css";
 
 const WELCOME_MESSAGE = {
-  id: "welcome",
-  role: "assistant",
-  content:
-    "Xin chào, mình là trợ lý IELTS của bạn. Bạn có thể hỏi về Reading, Listening, Writing, Speaking hoặc tải tài liệu lên để mình hỗ trợ phân tích nội dung.",
-  route_used: "welcome",
+  title: "Bạn đang luyện phần nào?",
+  description:
+    "Hỏi về một kỹ năng, một dạng câu hỏi, hoặc tải tài liệu lên để mình hỗ trợ.",
 };
 
-const routeLabels = {
-  base_model: "Model chính",
-  vector_rag: "Tài liệu RAG",
-  vector_rag_static: "Tài liệu RAG",
-  vector_rag_no_match: "Tài liệu RAG",
-  vector_rag_ambiguous_document: "Tài liệu RAG",
-  route_undetermined: "Chưa xác định luồng",
-  upload: "Tài liệu",
-  error: "Lỗi",
-};
-
-function routeLabel(route) {
-  if (!route || route === "welcome") return "";
-  return routeLabels[route] || route;
-}
+const QUICK_PROMPTS = [
+  "Lập cho tôi lộ trình học IELTS theo tuần",
+  "Bài luận Writing Task 2 nên bố cục thế nào?",
+  "Làm sao để cải thiện Speaking Fluency?",
+  "Chuẩn bị cho bài thi thử IELTS thế nào?",
+];
 
 function normalizeMarkdown(content) {
   const normalized = (content || "")
@@ -197,7 +186,7 @@ export default function IELTSChatbot({
   const client = useMemo(() => createChatbotClient(apiBase), [apiBase]);
   const [initialSession] = useState(() => startEphemeralSession(initialSessionId));
   const [sessionId, setSessionId] = useState(initialSession.currentId);
-  const [messages, setMessages] = useState([{ ...WELCOME_MESSAGE }]);
+  const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -205,6 +194,7 @@ export default function IELTSChatbot({
   const [pendingFiles, setPendingFiles] = useState([]);
   const [lastSessionActivity, setLastSessionActivity] = useState(Date.now());
   const fileInputRef = useRef(null);
+  const textInputRef = useRef(null);
   const messagesRef = useRef(null);
   const shouldAutoScrollRef = useRef(true);
   const requestControllerRef = useRef(null);
@@ -267,12 +257,7 @@ export default function IELTSChatbot({
         const nextSessionId = window.crypto.randomUUID();
         storeCurrentSession(nextSessionId);
         setSessionId(nextSessionId);
-        setMessages([
-          {
-            ...WELCOME_MESSAGE,
-            content: "Phiên trước đã hết hạn sau 30 phút không hoạt động. Mình đã bắt đầu một phiên mới cho bạn.",
-          },
-        ]);
+        setMessages([]);
         setPendingFiles([]);
         setInput("");
         setLastSessionActivity(Date.now());
@@ -293,6 +278,11 @@ export default function IELTSChatbot({
     const container = event.currentTarget;
     const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
     shouldAutoScrollRef.current = distanceFromBottom < 80;
+  }
+
+  function chooseQuickPrompt(prompt) {
+    setInput(prompt);
+    window.requestAnimationFrame(() => textInputRef.current?.focus());
   }
 
   function selectFiles(event) {
@@ -568,22 +558,35 @@ export default function IELTSChatbot({
         <header className="toolbar">
           <div className="brand">
             <span className="brandIcon">
-              <Bot size={22} />
+              <Bot size={16} />
             </span>
-            <div>
-              <h1>IELTS Chatbot</h1>
-              <p>Trợ lý luyện IELTS chạy bằng Ollama, có hỗ trợ hỏi đáp theo tài liệu</p>
-            </div>
+            <h1>Trợ lý IELTS</h1>
           </div>
+          <span className="betaBadge">Beta</span>
         </header>
 
-        <div className="messages" ref={messagesRef} onScroll={handleMessagesScroll}>
+        <div
+          className={`messages ${messages.length === 0 ? "empty" : ""}`}
+          ref={messagesRef}
+          onScroll={handleMessagesScroll}
+          role="log"
+          aria-label="Cuộc trò chuyện"
+          aria-live="polite"
+        >
+          {messages.length === 0 && (
+            <div className="emptyState">
+              <span className="emptyStateIcon" aria-hidden="true">
+                <Bot size={24} />
+              </span>
+              <h2>{WELCOME_MESSAGE.title}</h2>
+              <p>{WELCOME_MESSAGE.description}</p>
+            </div>
+          )}
           {messages.map((message, index) => (
             <article key={message.id || `${message.role}-${index}`} className={`message ${message.role}`}>
               <div className="avatar">{message.role === "user" ? <UserRound size={17} /> : <Sparkles size={17} />}</div>
               <div className="bubble">
                 <MessageContent message={message} />
-                {routeLabel(message.route_used) && <div className="route">{routeLabel(message.route_used)}</div>}
                 {message.retryText && (
                   <button
                     className="retryButton"
@@ -613,6 +616,22 @@ export default function IELTSChatbot({
             </article>
           )}
         </div>
+
+        {messages.length === 0 && (
+          <section className="quickStart" aria-label="Câu hỏi gợi ý">
+            <p className="quickStartLabel">
+              <Sparkles size={14} />
+              Bắt đầu với
+            </p>
+            <div className="quickPromptList">
+              {QUICK_PROMPTS.map((prompt) => (
+                <button key={prompt} type="button" onClick={() => chooseQuickPrompt(prompt)}>
+                  {prompt}
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
 
         <form className="composer" onSubmit={sendMessage}>
           {pendingFiles.length > 0 && (
@@ -646,6 +665,7 @@ export default function IELTSChatbot({
               onChange={selectFiles}
             />
             <textarea
+              ref={textInputRef}
               value={input}
               disabled={isResettingSession}
               onChange={(event) => setInput(event.target.value)}
@@ -680,6 +700,7 @@ export default function IELTSChatbot({
               {isSending || isUploading ? <X size={18} /> : <Send size={18} />}
             </button>
           </div>
+          <p className="composerHint">Enter để gửi, Shift + Enter để xuống dòng.</p>
         </form>
       </section>
     </main>
