@@ -80,19 +80,6 @@
   margin: 0;
 }
 
-.ieltsChatbotRoot .betaBadge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 24px;
-  padding: 2px 10px;
-  border-radius: 999px;
-  color: #334155;
-  background: #f6f7f9;
-  font-size: 12px;
-  font-weight: 500;
-}
-
 .ieltsChatbotRoot .composerIconButton:disabled,
 .ieltsChatbotRoot .sendButton:disabled {
   cursor: not-allowed;
@@ -165,6 +152,10 @@
 
 .ieltsChatbotRoot .message.user {
   flex-direction: row-reverse;
+}
+
+.ieltsChatbotRoot .message.assistant.streaming {
+  align-items: center;
 }
 
 .ieltsChatbotRoot .avatar {

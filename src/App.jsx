@@ -562,7 +562,6 @@ export default function IELTSChatbot({
             </span>
             <h1>Trợ lý IELTS</h1>
           </div>
-          <span className="betaBadge">Beta</span>
         </header>
 
         <div
@@ -583,7 +582,10 @@ export default function IELTSChatbot({
             </div>
           )}
           {messages.map((message, index) => (
-            <article key={message.id || `${message.role}-${index}`} className={`message ${message.role}`}>
+            <article
+              key={message.id || `${message.role}-${index}`}
+              className={`message ${message.role} ${message.streaming ? "streaming" : ""}`.trim()}
+            >
               <div className="avatar">{message.role === "user" ? <UserRound size={17} /> : <Sparkles size={17} />}</div>
               <div className="bubble">
                 <MessageContent message={message} />
@@ -601,7 +603,7 @@ export default function IELTSChatbot({
             </article>
           ))}
           {isSending && !hasStreamingAssistant && (
-            <article className="message assistant">
+            <article className="message assistant streaming">
               <div className="avatar">
                 <Sparkles size={17} />
               </div>
@@ -617,7 +619,7 @@ export default function IELTSChatbot({
           )}
         </div>
 
-        {messages.length === 0 && (
+        {messages.length === 0 && !input.trim() && (
           <section className="quickStart" aria-label="Câu hỏi gợi ý">
             <p className="quickStartLabel">
               <Sparkles size={14} />
