@@ -4,7 +4,7 @@
 
 - FE repository: phamtu2x5/ielts-chatbot-fe
 - BE/LLM/RAG repository: phamtu2x5/ielts-chatbot
-- Public backend hostname: https://api.mywsite.online
+- Backend hostname: supplied privately to the deployment/integration owner
 - Production browser access: only through a trusted same-origin website proxy
 - UI redesign: intentionally deferred
 

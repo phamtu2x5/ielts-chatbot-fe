@@ -37,9 +37,9 @@ The component is exported from src/index.js:
       );
     }
 
-The website server must proxy /api/ielts-chatbot/* to
-https://api.mywsite.online/*, attach Authorization: Bearer <server secret>, and
-stream responses without buffering.
+The website server must proxy /api/ielts-chatbot/* to the private backend
+hostname supplied during deployment, attach Authorization: Bearer <server
+secret>, and stream responses without buffering.
 
 Start with [docs/HANDOFF.md](docs/HANDOFF.md). Detailed contracts:
 

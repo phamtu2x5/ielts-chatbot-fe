@@ -6,7 +6,7 @@
       -> same-origin /api/ielts-chatbot/*
       -> trusted IELTS website server
       -> Authorization: Bearer <IELTS_API_TOKEN>
-      -> https://api.mywsite.online/*
+      -> https://chatbot-api.example.com/*
 
 The bearer token is a backend service credential. It must exist only in the
 website server's secret manager/environment and the Colab backend secret. Never
@@ -32,7 +32,7 @@ prefix.
 Use these values in .env.local:
 
     VITE_CHATBOT_API_URL=/api
-    CHATBOT_BACKEND_URL=https://api.mywsite.online
+    CHATBOT_BACKEND_URL=https://chatbot-api.example.com
     IELTS_API_TOKEN=replace-with-colab-backend-token
 
 IELTS_API_TOKEN is loaded by vite.config.js without the VITE_ prefix, so it
