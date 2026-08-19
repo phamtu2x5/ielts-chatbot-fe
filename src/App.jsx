@@ -23,10 +23,11 @@ import {
 } from "./session/sessionManager.js";
 import "./styles.css";
 
+const DOCUMENT_UPLOAD_ENABLED = false;
+
 const WELCOME_MESSAGE = {
   title: "Bạn đang luyện phần nào?",
-  description:
-    "Hỏi về một kỹ năng, một dạng câu hỏi, hoặc tải tài liệu lên để mình hỗ trợ.",
+  description: "Hỏi về một kỹ năng, một dạng câu hỏi hoặc lộ trình luyện thi IELTS.",
 };
 
 const QUICK_PROMPTS = [
@@ -724,7 +725,7 @@ export default function IELTSChatbot({
         )}
 
         <form className="composer" onSubmit={sendMessage}>
-          {pendingFiles.length > 0 && (
+          {DOCUMENT_UPLOAD_ENABLED && pendingFiles.length > 0 && (
             <div className="pendingAttachments" aria-label="Tệp đính kèm đang chờ gửi">
               {pendingFiles.map((item) => (
                 <AttachmentCard
@@ -736,37 +737,41 @@ export default function IELTSChatbot({
             </div>
           )}
           <div className="composerControls">
-            <button
-              className="composerIconButton"
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isUploading || isSending || isResettingSession}
-              title="Đính kèm tệp"
-              aria-label="Đính kèm tệp"
-            >
-              <Paperclip size={19} />
-            </button>
-            <input
-              ref={fileInputRef}
-              className="hiddenInput"
-              type="file"
-              multiple
-              accept=".txt,.md,.pdf,.docx,image/png,image/jpeg,image/webp"
-              onChange={selectFiles}
-            />
+            {DOCUMENT_UPLOAD_ENABLED && (
+              <>
+                <button
+                  className="composerIconButton"
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploading || isSending || isResettingSession}
+                  title="Đính kèm tệp"
+                  aria-label="Đính kèm tệp"
+                >
+                  <Paperclip size={19} />
+                </button>
+                <input
+                  ref={fileInputRef}
+                  className="hiddenInput"
+                  type="file"
+                  multiple
+                  accept=".txt,.md,.pdf,.docx,image/png,image/jpeg,image/webp"
+                  onChange={selectFiles}
+                />
+              </>
+            )}
             <textarea
               ref={textInputRef}
               value={input}
               disabled={isResettingSession}
               onChange={(event) => setInput(event.target.value)}
-              onPaste={pasteImages}
+              onPaste={DOCUMENT_UPLOAD_ENABLED ? pasteImages : undefined}
               onKeyDown={(event) => {
                 if (event.key === "Enter" && !event.shiftKey) {
                   event.preventDefault();
                   sendMessage(event);
                 }
               }}
-              placeholder="Nhập câu hỏi IELTS hoặc dán ảnh..."
+              placeholder="Nhập câu hỏi IELTS..."
               rows={1}
             />
             <button
