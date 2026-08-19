@@ -148,7 +148,7 @@ function AttachmentCard({ attachment, onRemove }) {
   const statusText = {
     queued: "Sẵn sàng gửi",
     uploading: "Đang tải lên...",
-    ready: `${attachment.chunks || 0} đoạn đã được lập chỉ mục`,
+    ready: "Đã tải lên",
     error: attachment.error || "Không thể tải tệp",
   }[attachment.status];
 
@@ -399,7 +399,7 @@ export default function IELTSChatbot({
         role: "assistant",
         content: "",
         streaming: true,
-        streamingStatus: queuedFiles.length ? "Đang chuẩn bị tài liệu..." : "Đang gửi câu hỏi...",
+        streamingStatus: queuedFiles.length ? "Đang đọc tài liệu..." : "Đang gửi câu hỏi...",
       },
     ]);
 
@@ -409,14 +409,14 @@ export default function IELTSChatbot({
 
       if (queuedFiles.length) {
         setIsUploading(true);
-        for (const [index, item] of queuedFiles.entries()) {
+        for (const item of queuedFiles) {
           updateAttachment(userId, item.id, { status: "uploading" });
           setMessages((current) =>
             current.map((message) =>
               message.id === assistantId
                 ? {
                     ...message,
-                    streamingStatus: `Đang xử lý tài liệu ${index + 1}/${queuedFiles.length}: ${item.name}`,
+                    streamingStatus: "Đang đọc tài liệu...",
                   }
                 : message
             )
