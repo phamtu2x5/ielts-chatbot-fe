@@ -181,7 +181,7 @@
   flex-direction: row-reverse;
 }
 
-.ieltsChatbotRoot .message.assistant.streaming {
+.ieltsChatbotRoot .message.assistant.pending {
   align-items: center;
 }
 

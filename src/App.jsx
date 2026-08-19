@@ -614,7 +614,14 @@ export default function IELTSChatbot({
           {messages.map((message, index) => (
             <article
               key={message.id || `${message.role}-${index}`}
-              className={`message ${message.role} ${message.streaming ? "streaming" : ""}`.trim()}
+              className={[
+                "message",
+                message.role,
+                message.streaming ? "streaming" : "",
+                message.streaming && !message.content?.trim() ? "pending" : "",
+              ]
+                .filter(Boolean)
+                .join(" ")}
             >
               <div className="avatar">{message.role === "user" ? <UserRound size={17} /> : <Sparkles size={17} />}</div>
               <div className="bubble">
@@ -633,7 +640,7 @@ export default function IELTSChatbot({
             </article>
           ))}
           {isSending && !hasStreamingAssistant && (
-            <article className="message assistant streaming">
+            <article className="message assistant streaming pending">
               <div className="avatar">
                 <Sparkles size={17} />
               </div>
